@@ -1,7 +1,7 @@
 let simTemp = input.temperature()
 let LIMIT = 30
 let PINO_LED = DigitalPin.P1
-function atualizar() {
+function update() {
     basic.showNumber(simTemp)
     if (simTemp > LIMIT) {
         pins.digitalWritePin(PINO_LED, 1)
@@ -11,19 +11,19 @@ function atualizar() {
     
 }
 
-atualizar()
+update()
 input.onButtonPressed(Button.A, function on_button_pressed_a() {
     
     simTemp += 1
-    atualizar()
+    update()
 })
 input.onButtonPressed(Button.B, function on_button_pressed_b() {
     
     simTemp -= 1
-    atualizar()
+    update()
 })
 input.onButtonPressed(Button.AB, function on_button_pressed_ab() {
     
     simTemp = input.temperature()
-    atualizar()
+    update()
 })
