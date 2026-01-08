@@ -22,3 +22,8 @@ input.onButtonPressed(Button.B, function on_button_pressed_b() {
     simTemp -= 1
     atualizar()
 })
+input.onButtonPressed(Button.AB, function on_button_pressed_ab() {
+    
+    simTemp = input.temperature()
+    atualizar()
+})

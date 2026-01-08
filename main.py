@@ -26,3 +26,10 @@ def on_button_pressed_b():
     atualizar()
 
 input.on_button_pressed(Button.B, on_button_pressed_b)
+
+def on_button_pressed_ab():
+    global simTemp
+    simTemp = input.temperature()
+    atualizar()
+
+input.on_button_pressed(Button.AB, on_button_pressed_ab)
