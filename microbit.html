@@ -7,35 +7,41 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #ffffff; padding-top: 70px; }
-        .navbar { background-color: #43759a; } /* verde ambiental */
-        .card { border: 1px solid #2c7a2c; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h1, h2 { color: #ffffff; }
- </style>
+        .navbar { background-color: #43759a; }
+        h1, h2 { color: #43759a; }
+        .btn-primary { background-color: #43759a; border-color: #43759a; }
+        .btn-primary:hover { background-color: #365f7d; }
+        .btn-secondary { background-color: #6c757d; border-color: #6c757d; }
+        .btn-secondary:hover { background-color: #5a6268; }
+    </style>
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container">
-        <a class="navbar-brand" href="#">Projeto Temperatura & Ambiente</a>
+        <a class="navbar-brand" href="index.html">Projeto Temperatura & Ambiente</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="microbit.html">micro:bit Live</a></li>
+                <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                <li class="nav-item"><a class="nav-link active" href="#">micro:bit Live</a></li>
                 <li class="nav-item"><a class="nav-link" href="python.html">Modelo Python</a></li>
             </ul>
         </div>
     </div>
 </nav>
+
 <div class="container my-5">
     <h1 class="text-center">Demo Live: micro:bit Temperatura</h1>
-    <p class="text-center lead">Liga o micro:bit via USB e clica em Conectar. Vê a temperatura simulada/real ao vivo!</p>
+    <p class="text-center lead">Gráfico com dados manuais (adiciona valores e exporta JSON).</p>
 
     <div class="text-center mb-4">
-        <button id="connectBtn" class="btn btn-success btn-lg">Conectar micro:bit</button>
-        <p id="status" class="mt-3 fw-bold text-muted">Status: Desconectado</p>
+        <input type="number" id="novoValor" class="form-control d-inline-block w-25 me-2" placeholder="Novo valor (°C)" step="0.1">
+        <button id="addBtn" class="btn btn-primary">Adicionar Valor Manual</button>
+        <button id="exportBtn" class="btn btn-secondary ms-2">Exportar JSON Atualizado</button>
+        <p id="status" class="mt-3 fw-bold text-muted">Dados carregados manualmente</p>
     </div>
 
     <div class="row">
@@ -52,23 +58,24 @@
     </div>
 </div>
 
-<script src="https://unpkg.com/@bsiever/microbit-webusb@latest/dist/ubitwebusb.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    let microbit = null;
-    const status = document.getElementById('status');
+    const STORAGE_KEY = 'temperaturas_historico';
+    let historico = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
     const ultimoValor = document.getElementById('ultimoValor');
     const ledImg = document.getElementById('ledImg');
+    const status = document.getElementById('status');
 
     const ctx = document.getElementById('tempChart').getContext('2d');
     const chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: [],
+            labels: historico.map(item => item.tempo),
             datasets: [{
                 label: 'Temperatura (°C)',
-                data: [],
-                borderColor: '#2c7a2c',
+                data: historico.map(item => item.valor),
+                borderColor: '#43759a',
                 tension: 0.4,
                 fill: false
             }]
@@ -76,38 +83,57 @@
         options: { responsive: true, scales: { y: { suggestedMin: 0, suggestedMax: 50 } } }
     });
 
-    document.getElementById('connectBtn').addEventListener('click', async () => {
-        try {
-            microbit = await ubit.connect();
-            status.textContent = 'Conectado! Recebendo dados...';
-            status.className = 'text-success fw-bold';
-            document.getElementById('connectBtn').disabled = true;
+    function atualizarGrafico() {
+        chart.data.labels = historico.map(item => item.tempo);
+        chart.data.datasets[0].data = historico.map(item => item.valor);
+        chart.update();
 
-            while (true) {
-                const line = await microbit.readLine();
-                if (line && line.startsWith('VALOR:')) {
-                    const temp = parseFloat(line.split(':')[1]);
-                    ultimoValor.textContent = temp + ' °C';
+        if (historico.length > 0) {
+            const ultimo = historico[historico.length - 1];
+            ultimoValor.textContent = ultimo.valor + ' °C';
+            ledImg.style.display = ultimo.valor > 30 ? 'block' : 'none';
+        } else {
+            ultimoValor.textContent = '-- °C';
+            ledImg.style.display = 'none';
+        }
+    }
 
-                    // Atualiza gráfico
-                    const now = new Date().toLocaleTimeString();
-                    chart.data.labels.push(now);
-                    chart.data.datasets[0].data.push(temp);
-                    if (chart.data.labels.length > 30) {
-                        chart.data.labels.shift();
-                        chart.data.datasets[0].data.shift();
-                    }
-                    chart.update();
-
-                    // Mostra LED se >30
-                    ledImg.style.display = temp > 30 ? 'block' : 'none';
-                }
-            }
-        } catch (err) {
-            status.textContent = 'Erro: ' + err.message + ' (Chrome/Edge + USB ligado)';
-            status.className = 'text-danger';
+    document.getElementById('addBtn').addEventListener('click', () => {
+        const input = document.getElementById('novoValor');
+        const valor = parseFloat(input.value);
+        if (!isNaN(valor)) {
+            const agora = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            historico.push({ tempo: agora, valor: valor });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(historico));
+            atualizarGrafico();
+            input.value = '';
+            status.textContent = 'Valor adicionado! Clique em Exportar para salvar.';
+        } else {
+            alert('Insira um número válido.');
         }
     });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+        if (historico.length === 0) {
+            alert('Não há dados para exportar.');
+            return;
+        }
+        if (confirm('Deseja exportar o JSON atualizado?')) {
+            const dataStr = JSON.stringify(historico, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'data_atualizado.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            status.textContent = 'Ficheiro baixado! Renomeie para data.json.';
+        }
+    });
+
+    atualizarGrafico();
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
