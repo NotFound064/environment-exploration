@@ -11,8 +11,7 @@
         h1, h2 { color: #43759a; }
         .btn-primary { background-color: #43759a; border-color: #43759a; }
         .btn-primary:hover { background-color: #365f7d; }
-        .btn-secondary { background-color: #6c757d; border-color: #6c757d; }
-        .btn-secondary:hover { background-color: #5a6268; }
+        .btn-success { background-color: #198754; border-color: #198754; }
     </style>
 </head>
 <body>
@@ -35,13 +34,13 @@
 
 <div class="container my-5">
     <h1 class="text-center">Demo Live: micro:bit Temperatura</h1>
-    <p class="text-center lead">Gráfico com dados manuais (adiciona valores e exporta JSON).</p>
+    <p class="text-center lead">Gráfico com dados carregados de data.json. Adicione valores e copie o JSON atualizado para salvar no ficheiro.</p>
 
     <div class="text-center mb-4">
         <input type="number" id="novoValor" class="form-control d-inline-block w-25 me-2" placeholder="Novo valor (°C)" step="0.1">
-        <button id="addBtn" class="btn btn-primary">Adicionar Valor Manual</button>
-        <button id="exportBtn" class="btn btn-secondary ms-2">Exportar JSON Atualizado</button>
-        <p id="status" class="mt-3 fw-bold text-muted">Dados carregados manualmente</p>
+        <button id="addBtn" class="btn btn-primary">Adicionar Valor</button>
+        <button id="copyBtn" class="btn btn-success ms-2">Copiar JSON Atualizado</button>
+        <p id="status" class="mt-3 fw-bold text-muted">Dados carregados de data.json</p>
     </div>
 
     <div class="row">
@@ -53,34 +52,38 @@
             <h3>Última Leitura</h3>
             <p class="fs-1 text-center" id="ultimoValor">-- °C</p>
             <p>LED acende se >30°C (alerta ambiental)</p>
-            <img src="imagens/led_on.jpg" class="img-fluid rounded" alt="LED aceso" id="ledImg" style="display:none; max-height:200px;">
+            <img id="ledImg" src="images/led-on.png" alt="LED Alerta" style="display: none; width: 100px; margin: 0 auto;">
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const STORAGE_KEY = 'temperaturas_historico';
-    let historico = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let historico = [];
 
+    // Elementos DOM (verifica se existem para evitar erros)
     const ultimoValor = document.getElementById('ultimoValor');
     const ledImg = document.getElementById('ledImg');
     const status = document.getElementById('status');
 
+    // Inicializa o gráfico
     const ctx = document.getElementById('tempChart').getContext('2d');
     const chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: historico.map(item => item.tempo),
+            labels: [],
             datasets: [{
                 label: 'Temperatura (°C)',
-                data: historico.map(item => item.valor),
+                data: [],
                 borderColor: '#43759a',
                 tension: 0.4,
                 fill: false
             }]
         },
-        options: { responsive: true, scales: { y: { suggestedMin: 0, suggestedMax: 50 } } }
+        options: {
+            responsive: true,
+            scales: { y: { suggestedMin: 0, suggestedMax: 50 } }
+        }
     });
 
     function atualizarGrafico() {
@@ -90,49 +93,87 @@
 
         if (historico.length > 0) {
             const ultimo = historico[historico.length - 1];
-            ultimoValor.textContent = ultimo.valor + ' °C';
-            ledImg.style.display = ultimo.valor > 30 ? 'block' : 'none';
+            ultimoValor.textContent = ultimo.valor.toFixed(1) + ' °C';
+            if (ledImg) ledImg.style.display = ultimo.valor > 30 ? 'block' : 'none';
         } else {
             ultimoValor.textContent = '-- °C';
-            ledImg.style.display = 'none';
+            if (ledImg) ledImg.style.display = 'none';
         }
     }
 
+    async function carregarDados() {
+        // Prioridade 1: localStorage (persistência automática)
+        const saved = localStorage.getItem('tempHistorico');
+        if (saved) {
+            try {
+                historico = JSON.parse(saved);
+                atualizarGrafico();
+                status.textContent = `Dados restaurados do browser (${historico.length} leituras)`;
+                status.classList.add('text-success');
+                status.classList.remove('text-danger', 'text-muted');
+                return;
+            } catch (e) {
+                console.warn('localStorage corrompido → usando data.json');
+            }
+        }
+
+        // Prioridade 2: data.json
+        try {
+            const response = await fetch('data.json');
+            if (!response.ok) throw new Error('Falha ao carregar data.json');
+            historico = await response.json();
+            atualizarGrafico();
+            localStorage.setItem('tempHistorico', JSON.stringify(historico)); // salva para sempre
+            status.textContent = `Dados carregados de data.json (${historico.length} leituras)`;
+            status.classList.add('text-success');
+            status.classList.remove('text-danger', 'text-muted');
+        } catch (err) {
+            status.textContent = 'Erro ao carregar dados: ' + err.message;
+            status.classList.add('text-danger');
+            historico = [];
+            atualizarGrafico();
+        }
+    }
+
+    // Adicionar valor
     document.getElementById('addBtn').addEventListener('click', () => {
         const input = document.getElementById('novoValor');
-        const valor = parseFloat(input.value);
-        if (!isNaN(valor)) {
-            const agora = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            historico.push({ tempo: agora, valor: valor });
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(historico));
-            atualizarGrafico();
-            input.value = '';
-            status.textContent = 'Valor adicionado! Clique em Exportar para salvar.';
-        } else {
-            alert('Insira um número válido.');
-        }
-    });
-
-    document.getElementById('exportBtn').addEventListener('click', () => {
-        if (historico.length === 0) {
-            alert('Não há dados para exportar.');
+        const valor = parseFloat(input.value.trim());
+        if (isNaN(valor)) {
+            alert('Insira um número válido (ex: 23.5)');
             return;
         }
-        if (confirm('Deseja exportar o JSON atualizado?')) {
-            const dataStr = JSON.stringify(historico, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'data_atualizado.json';
-            a.click();
-            URL.revokeObjectURL(url);
-            status.textContent = 'Ficheiro baixado! Renomeie para data.json.';
-        }
+
+        const agora = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+        historico.push({ tempo: agora, valor: valor });
+        localStorage.setItem('tempHistorico', JSON.stringify(historico)); // salva automático
+        atualizarGrafico();
+        input.value = '';
+        status.textContent = `Adicionado ${valor.toFixed(1)}°C e guardado no browser!`;
+        status.classList.add('text-success');
+        status.classList.remove('text-danger', 'text-muted');
     });
 
-    atualizarGrafico();
+    // Copiar JSON (fallback)
+    document.getElementById('copyBtn').addEventListener('click', () => {
+        if (historico.length === 0) {
+            alert('Não há dados para copiar.');
+            return;
+        }
+        const dataStr = JSON.stringify(historico, null, 2);
+        navigator.clipboard.writeText(dataStr).then(() => {
+            status.textContent = 'JSON copiado! Cole no data.json se quiser.';
+            status.classList.add('text-success');
+        }).catch(err => {
+            status.textContent = 'Erro ao copiar: ' + err.message;
+            status.classList.add('text-danger');
+        });
+    });
+
+    // Inicia a página
+    carregarDados();
 </script>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
