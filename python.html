@@ -10,8 +10,9 @@
         body { background-color: #ffffff; padding-top: 70px; }
         .navbar { background-color: #43759a; } /* verde ambiental */
         .card { border: 1px solid #455e71; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h1, h2 { color: #ffffff; }
+        h1, h2 { color: #43759a; }
         pre code { font-size: 0.95em; }
+    .section-header {background-color: #43759a; color: white; }
     </style>
 </head>
 <body>
@@ -30,10 +31,21 @@
 <div class="container my-5">
     <h1 class="text-center mb-4">Modelo Computacional em Python</h1>
     <p class="lead text-center">Simulação de impacto ambiental baseado em temperatura e renováveis</p>
-
-    <!-- Seção 1: Código Python -->
+    <!-- Section 1: Informations about graph-->
     <div class="card mb-4">
-        <div class="card-header bg-success text-white">
+        <div class="card-header section-header">
+            <h5 class="mb-0">Informacoes sobre o Modelo</h5>
+        </div>
+        <div class="card-body text-center">
+            <p class="mt-3">Os valores de temperatura utilizados no modelo correspondem a leituras reais ou simuladas recolhidas pelo micro:bit durante a fase de data collection.</p>
+            <p class="mt-3">Este modelo utiliza uma relação linear simplificada para demonstrar tendências, não para prever valores reais.</p>
+            <p>Este gráfico foi implementado em JavaScript utilizando a biblioteca Chart.js. O JavaScript é usado apenas para visualização interativa dos dados recolhidos pelo micro:bit. O modelo computacional e as simulações “what-if” foram desenvolvidos separadamente em Python.</p>
+        </div>
+    </div>
+    
+    <!-- Seção 2: Código Python -->
+    <div class="card mb-4">
+        <div class="card-header section-header">
             <h5 class="mb-0">Código do Modelo (Python)</h5>
         </div>
         <div class="card-body">
@@ -61,7 +73,7 @@ plt.show()</code></pre>
 
     <!-- Seção 2: Gráfico gerado -->
     <div class="card mb-4">
-        <div class="card-header bg-success text-white">
+        <div class="card-header section-header">
             <h5 class="mb-0">Gráfico Gerado pelo Modelo</h5>
         </div>
         <div class="card-body text-center">
@@ -72,7 +84,7 @@ plt.show()</code></pre>
 
     <!-- Seção 3: Análise curta -->
     <div class="card">
-        <div class="card-header bg-success text-white">
+        <div class="card-header section-header">
             <h5 class="mb-0">Análise e What-If Scenarios</h5>
         </div>
         <div class="card-body">
