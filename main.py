@@ -34,3 +34,9 @@ def on_button_pressed_ab():
     update()
 
 input.on_button_pressed(Button.AB, on_button_pressed_ab)
+
+while True:
+    realTemp = input.temperature()
+    if realTemp > LIMIT:
+        pins.digital_write_pin(PINO_LED, 1)
+    basic.pause(1000)
