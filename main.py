@@ -2,7 +2,7 @@ serial.redirect_to_usb()
 
 simTemp = input.temperature()
 LIMIT = 30
-PINO_LED = DigitalPin.P1  
+PINO_LED = DigitalPin.P2  
 
 def update():
     basic.show_number(simTemp)

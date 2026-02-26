@@ -1,7 +1,7 @@
 serial.redirectToUSB()
 let simTemp = input.temperature()
 let LIMIT = 30
-let PINO_LED = DigitalPin.P1
+let PINO_LED = DigitalPin.P2
 function update() {
     basic.showNumber(simTemp)
     if (simTemp > LIMIT) {
