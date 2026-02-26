@@ -2,15 +2,14 @@ serial.redirect_to_usb()
 
 simTemp = input.temperature()
 LIMIT = 30
-PINO_LED = DigitalPin.P2  
 
 def update():
     basic.show_number(simTemp)
-
-    if simTemp > LIMIT:
-        pins.digital_write_pin(PINO_LED, 1)
+    
+    if simTemp >= LIMIT:
+        basic.show_icon(IconNames.SAD)  
     else:
-        pins.digital_write_pin(PINO_LED, 0)
+        basic.clear_screen()
 
 update()
 
@@ -30,13 +29,7 @@ input.on_button_pressed(Button.B, on_button_pressed_b)
 
 def on_button_pressed_ab():
     global simTemp
-    simTemp = input.temperature()
+    simTemp = input.temperature() 
     update()
 
 input.on_button_pressed(Button.AB, on_button_pressed_ab)
-
-while True:
-    realTemp = input.temperature()
-    if realTemp > LIMIT:
-        pins.digital_write_pin(PINO_LED, 1)
-    basic.pause(1000)

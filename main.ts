@@ -1,14 +1,12 @@
-let realTemp: number;
 serial.redirectToUSB()
 let simTemp = input.temperature()
 let LIMIT = 30
-let PINO_LED = DigitalPin.P2
 function update() {
     basic.showNumber(simTemp)
-    if (simTemp > LIMIT) {
-        pins.digitalWritePin(PINO_LED, 1)
+    if (simTemp >= LIMIT) {
+        basic.showIcon(IconNames.Sad)
     } else {
-        pins.digitalWritePin(PINO_LED, 0)
+        basic.clearScreen()
     }
     
 }
@@ -29,11 +27,3 @@ input.onButtonPressed(Button.AB, function on_button_pressed_ab() {
     simTemp = input.temperature()
     update()
 })
-while (true) {
-    realTemp = input.temperature()
-    if (realTemp > LIMIT) {
-        pins.digitalWritePin(PINO_LED, 1)
-    }
-    
-    basic.pause(1000)
-}
