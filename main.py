@@ -1,3 +1,4 @@
+serial.redirect_to_usb()
 
 simTemp = input.temperature()
 LIMIT = 30

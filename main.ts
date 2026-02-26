@@ -1,3 +1,4 @@
+serial.redirectToUSB()
 let simTemp = input.temperature()
 let LIMIT = 30
 let PINO_LED = DigitalPin.P1
