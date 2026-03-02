@@ -136,8 +136,8 @@ plt.show()
             <ul>
                 <li>
                     <strong>Baseline scenario (0% renewables):</strong>
-                    The model predicts a high average temperature of approximately 40 °C, exceeding the micro:bit 
-                    alert threshold.
+                    The model predicts a high average temperature of approximately 40 °C, exceeding the  
+                    alert threshold defined as 30 °C.
                 </li>
                 <li>
                     <strong>What-if: +60% renewables:</strong>
@@ -152,7 +152,7 @@ plt.show()
                 <li>
                     <strong>What-if: crossing the alert threshold:</strong>
                     The model suggests that increasing renewable energy beyond approximately 50–60% is sufficient 
-                    to reduce temperature below the micro:bit alert threshold of 30 °C.
+                    to reduce temperature below the alert of 30 °C threshold.
                 
                 </li>
                 <li>
@@ -173,8 +173,8 @@ plt.show()
         </div>
         <div class="card-body">
             <ul>
-                <li>Tested threshold condition to confirm LED activates above 30°C.</li>
                 <li>Tested Button A and Button B to verify temperature increases and decreases correctly.</li>
+                <li>Tested Button A+B reset functionality to confirm correct return to ambient temperature reading.</li>
                 <li>Tested JSON data loading and localStorage recovery.</li>
                 <li>Tested empty dataset behaviour to ensure no system crash.</li>
             </ul>
