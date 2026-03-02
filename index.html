@@ -36,7 +36,7 @@
     <h1 class="display-4">Temperature and Environmental Impact Simulation</h1>
     <p class="lead">Leaving Certificate Computer Science 2026</p>
     <p>
-        The micro:bit collects or simulates temperature data → an LED alert is triggered above 30°C →
+        The micro:bit collects or simulates temperature data → 
         data is displayed live in the browser or loaded manually from a JSON file.
     </p>
 
@@ -61,13 +61,14 @@
     <p>
         <strong>Inputs:</strong><br>
         – micro:bit temperature sensor<br>
-        – Buttons A and B (carbon emissions simulation / renewable energy simulation)<br>
+        – Button A (increases simulated temperature – carbon emissions) <br>
+        – Button B (decreases simulated temperature – renewable energy) <br>
+        – Button A+B (resets the temperature to the current ambient reading)<br>
         – Manual data entry through the website<br><br>
 
         <strong>Outputs:</strong><br>
         – Temperature graph<br>
-        – Numerical display of the most recent reading<br>
-        – LED warning light when temperature exceeds 30°C
+        – Numerical display of the most recent reading
     </p>
 
     <br>
@@ -92,7 +93,8 @@
     is a simplified linear abstraction and does not account for complex climate variables.
 
     <strong>Future Improvements:</strong> Integration of additional sensors (humidity, light), 
-    cloud data storage, and a more advanced predictive model.
+    cloud data storage, LEDs to alert when temperature achieve too high temperatures, and a more advanced predictive 
+    model.
     </p>
 </div>
 
